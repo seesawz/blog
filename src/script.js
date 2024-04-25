@@ -4,166 +4,89 @@ import * as THREE from 'three'
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import GUI from 'lil-gui';
 import gsap from 'gsap'
+import { FontLoader, TextBufferGeometry } from 'three';
 
-/* const image = new Image()
-const texture = new THREE.Texture(image)
-image.onload = () => {
-  texture.needsUpdate = true
-}
-image.src = '/textures/door/color.jpg' 
-*/
 
-const loadingManager = new THREE.LoadingManager()
-loadingManager.onStart = () => {
-  console.log('loading started')
-}
-loadingManager.onLoad = () => {
-  console.log('loading finished')
-}
-loadingManager.onProgress = () => {
-  console.log('loading progressing')
-}
-loadingManager.onError = () => {
-  console.error('error')
-}
-
-const textureLoader = new THREE.TextureLoader(loadingManager)
-const colorTexture = textureLoader.load('/textures/door/color.jpg')
-
-// colorTexture.repeat.x = 2
-// colorTexture.repeat.y = 3
-// colorTexture.wrapS = THREE.RepeatWrapping
-// colorTexture.wrapT = THREE.RepeatWrapping
-
-// colorTexture.rotation = Math.PI * 0.5
-// colorTexture.center = new THREE.Vector2(0.5, 0.5)
-//在minFilter = NearestFilter 时可以关闭mipmap获得跟好的性能
-colorTexture.generateMipmaps = false
-colorTexture.minFilter = THREE.NearestFilter
-colorTexture.magFilter = THREE.NearestFilter
-
-const cursor = {
-  x: 0,
-  y: 0
-}
-
-window.addEventListener('mousemove', (event) => {
-  cursor.x = event.clientX / sizes.width - 0.5
-  cursor.y = - (event.clientY / sizes.height - 0.5)
-})
-
-// Canvas
 const canvas = document.querySelector('canvas.webgl')
 
-// Scene
+//创建场景
 const scene = new THREE.Scene()
 
-
-const geometry = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshBasicMaterial({
-  map: colorTexture
-})
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
-
-// Sizes
-const sizes = {
-  width: window.innerWidth,
+const size = {
   height: window.innerHeight,
+  width: window.innerWidth
 }
 
-window.addEventListener('resize', () => {
-  //update sizes
-  sizes.width = window.innerWidth
-  sizes.height = window.innerHeight
-
-  //update camera 
-  camera.aspect = sizes.width / sizes.height
-  camera.updateProjectionMatrix()
-
-  //updare renderer
-  renderer.setSize(sizes.width, sizes.height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-})
-
-window.addEventListener('dblclick', () => {
-  if (!document.fullscreenElement) {
-    canvas.requestFullscreen()
-  } else {
-    document.exitFullscreen()
-  }
-})
-
-
-// Camera 透视相机
-//第3-4个参数是控制相机的可视距离
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 1, 100)
-//controls
-const controls = new OrbitControls(camera, canvas)
-//controls.enabled = false
-controls.enableDamping = true
-
-//正交相机
-
-// //正交相机会随着画布的尺寸拉伸场景，所以我们需要计算画布的宽高比
-// const aspectRatio = sizes.width / sizes.height
-//
-// //在这种投影模式下，无论物体距离相机近或者远，他们的大小都不会变化
-// const camera = new THREE.OrthographicCamera(-1 * aspectRatio, 1 * aspectRatio, 1, -1, 1, 100)
-
-// camera.position.z = 2
-// camera.position.x = 2
-camera.position.z = 3
-camera.lookAt(mesh.position)
+//创建透视相机
+const camera = new THREE.PerspectiveCamera(75, size.width / size.height, 1, 100)
 scene.add(camera)
 
-// Renderer
+
+
+const fontLoader = new FontLoader()
+
+fontLoader.load('/fonts/helvetiker_regular.typeface.json',
+  (font) => {
+    const textGeometry = new TextBufferGeometry('Hello Three.js',
+      {
+        font: font,
+        size: 0.5,
+        height: 0.2,
+        //关于三角形的数量
+        curveSegments: 1,
+        bevelEnabled: true,
+        bevelThickness: 0.03,
+        bevelSize: 0.02,
+        bevelOffset: 0,
+        //关于圆角
+        bevelSegments: 5
+      })
+    const textMaterial = new THREE.MeshBasicMaterial({
+      wireframe: true
+    })
+    const text = new THREE.Mesh(textGeometry, textMaterial)
+    scene.add(text)
+    text.position.x = -1.5
+  })
+
+
+camera.position.z = 3
+
+//renderer
 const renderer = new THREE.WebGLRenderer({
-  canvas: canvas,
+  canvas: canvas
 })
-renderer.setSize(sizes.width, sizes.height)
-//设置像素比最高为2
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
 
 const clock = new THREE.Clock()
+
 function tick() {
-  //控制渲染的帧率
   const elapsedTime = clock.getElapsedTime()
-  //mesh.rotation.y = elapsedTime
-  //mesh.position.x = Math.sin(elapsedTime)
 
-  //update camera
-  // camera.position.x = Math.sin(cursor.x * 10) * 3
-  // camera.position.z = Math.cos(cursor.x * 10) * 3
-  // camera.position.y = cursor.y * 5
-  // camera.lookAt(mesh.position)
-
-  //update controls
   controls.update()
-
   renderer.render(scene, camera)
   window.requestAnimationFrame(tick)
 }
 tick()
 
-/* 
-*  Debug
-*/
-const gui = new GUI();
-//最后一个参数是区间和步长
-gui.add(mesh.position, 'y', -3, 3, 0.01)
-gui
-  .add(mesh.position, 'x')
-  .min(-3)
-  .max(3)
-  .step(0.01)
-  .name('positionX')
+renderer.setSize(size.width, size.height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.render(scene, camera)
 
-gui.add(mesh, 'visible')
-gui.add(material, 'wireframe')
-gui.addColor(material, 'color')
-gui.add({
-  spin: () => {
-    gsap.to(mesh.rotation, { duration: 1, y: mesh.rotation.y + Math.PI * 2 })
-  }
-}, 'spin')
+window.addEventListener('resize', () => {
+  //update sizes
+  size.width = window.innerWidth
+  size.height = window.innerHeight
+
+  //update camera 
+  camera.aspect = size.width / size.height
+  camera.updateProjectionMatrix()
+
+  //updare renderer
+  renderer.setSize(size.width, size.height)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+})
+
+const gui = new GUI()
