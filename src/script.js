@@ -27,7 +27,7 @@ scene.add(camera)
 */
 const textureLoader = new THREE.TextureLoader()
 
-const matcapsTexture = textureLoader.load('/matcaps/2.png')
+const matcapsTexture = textureLoader.load('/matcaps/3.png')
 
 
 const fontLoader = new FontLoader()
@@ -59,15 +59,46 @@ fontLoader.load('/fonts/helvetiker_regular.typeface.json',
 
     //textGeometry.center()
 
-    console.log(textGeometry.boundingBox)
-
-    const textMaterial = new THREE.MeshMatcapMaterial({
+    const material = new THREE.MeshMatcapMaterial({
       //wireframe: true
       matcap: matcapsTexture
     })
-    const text = new THREE.Mesh(textGeometry, textMaterial)
+    const text = new THREE.Mesh(textGeometry, material)
     scene.add(text)
 
+    const dountGemotry = new THREE.TorusBufferGeometry(0.3, 0.2, 20, 45)
+    for (let i = 1; i < 100; i++) {
+      const dount = new THREE.Mesh(dountGemotry, material)
+
+      dount.position.x = (Math.random() - 0.5) * 10
+      dount.position.y = (Math.random() - 0.5) * 10
+      dount.position.z = (Math.random() - 0.5) * 10
+
+      dount.rotation.x = Math.random() * Math.PI
+      dount.rotation.y = Math.random() * Math.PI
+
+      const scale = Math.random()
+      dount.scale.set(scale, scale, scale)
+
+      scene.add(dount)
+    }
+
+    const shapeGeometry = new THREE.DodecahedronBufferGeometry(0.2)
+    for (let i = 1; i < 100; i++) {
+      const shape = new THREE.Mesh(shapeGeometry, material);
+
+      shape.position.x = (Math.random() - 0.5) * 10;
+      shape.position.y = (Math.random() - 0.5) * 10;
+      shape.position.z = (Math.random() - 0.5) * 10;
+
+      shape.rotation.x = Math.random() * Math.PI;
+      shape.rotation.y = Math.random() * Math.PI;
+
+      const scale = Math.random();
+      shape.scale.set(scale, scale, scale);
+
+      scene.add(shape);
+    }
   })
 
 
